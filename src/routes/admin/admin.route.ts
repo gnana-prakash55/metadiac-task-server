@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ListUsers, ListGameTypes, ManagePanel, getManagePanel, deleteUser, AddGameTypes } from "../../controllers/admin/admin.controller"
+import { ListUsers, ListGameTypes, ManagePanel, getManagePanel, deleteUser, AddGameTypes, DeleteGameType } from "../../controllers/admin/admin.controller"
 import { authorization } from "../../controllers/middleware/authorization";
 
 export const adminRouter = Router()
@@ -10,3 +10,4 @@ adminRouter.get('/manage', authorization ,getManagePanel)
 adminRouter.delete('/user/:userId', authorization ,deleteUser)
 adminRouter.post('/gameTypes', authorization , AddGameTypes)
 adminRouter.get('/gameTypes', authorization ,ListGameTypes)
+adminRouter.delete('/gameTypes/:gameTypeId', authorization ,DeleteGameType)

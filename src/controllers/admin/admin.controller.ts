@@ -62,6 +62,23 @@ export const ListGameTypes = async (req: Request, res: Response) => {
     }
 }
 
+export const DeleteGameType = async (req: Request, res: Response) => {
+    try {
+
+        if(req?.user?.role !== "admin") return res.status(401).send({message: "You are not allowed"})
+
+        const { gameTypeId } = req.params
+
+        await GameType.deleteOne({ _id: gameTypeId })
+
+        return res.status(200).send({ message: "GameType Deleted"})
+        
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send("Server Error")
+    }
+}
+
 export const ManagePanel = async (req: Request, res: Response) => {
     try {
 

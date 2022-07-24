@@ -31,8 +31,7 @@ async function START_SERVER() {
 
     await db;
 
-    const httpServer = http.createServer(app)
-    httpServer.listen(config.server.port, () => {
+    app.listen(config.server.port, () => {
     logging.info(NAMESPACE,`Server Running on ${config.server.hostname}:${config.server.port}`)
 })
 }
