@@ -126,31 +126,48 @@ export const saveGame = async (req: Request, res: Response) => {
             gameType
         })
 
-        await newGame.save()
 
         const gameTypes = await GameType.findOne({ _id: gameType }, { price: 1})
 
         if(completed_minutes <= (manage?.firstTimeInterval.interval as number)) {
-            const creditAmount = (wallet?.balance as number) + (((manage?.firstTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
+ 
+            const amountWon = (((manage?.firstTimeInterval.percentage as number)/100) * (gameTypes?.price as number))
+            const creditAmount = (wallet?.balance as number) +  amountWon
+
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
                 }
             })
+
+            newGame.amountWon = amountWon
+            await newGame.save()
+
         } else if(completed_minutes > (manage?.firstTimeInterval.interval as number) && completed_minutes < (manage?.secondTimeInterval.interval as number)) {
-            const creditAmount = (wallet?.balance as number) + (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
+            
+            const amountWon = (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number))
+            const creditAmount = (wallet?.balance as number) +  amountWon
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
                 }
             })
+
+            newGame.amountWon = amountWon
+            await newGame.save()
+
         } else if(completed_minutes > (manage?.thirdTimeInterval.interval as number)) {
-            const creditAmount = (wallet?.balance as number) + (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
+            
+            const amountWon = (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number))
+            const creditAmount = (wallet?.balance as number) +  amountWon
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
                 }
             })
+
+            newGame.amountWon = amountWon
+            await newGame.save()
         }
 
         return res.status(200).send({ message: "Game Finished" })
@@ -181,15 +198,23 @@ export const ScoreBoard = async (req: Request, res: Response) => {
                 }
             },
             {
+                $group: {
+                    _id: '$users._id',
+                    name: { $first: '$$ROOT.users.name'},
+                    email: { $first: '$$ROOT.users.email' },
+                    amountWon: { $sum: '$amountWon'}
+                }
+            },
+            {
                 $project: {
-                    name: "$users.name",
-                    email: "$users.email",
-                    timeElapsed: 1  
+                    name: 1,
+                    email: 1,
+                    amountWon: 1
                 }
             },
             {
                 $sort: {
-                    timeElapsed: 1
+                    amountWon: -1
                 }
             }
         ])
