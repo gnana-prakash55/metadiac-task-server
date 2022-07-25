@@ -3,6 +3,7 @@ import mongoose,{ Schema, Document } from 'mongoose';
 
 export interface Game extends Document {
     userId: mongoose.Types.ObjectId,
+    gameType: mongoose.Types.ObjectId,
     startTime: Date,
     endTime: Date,
     timeElapsed: number,
@@ -12,6 +13,7 @@ export interface Game extends Document {
 const GameSchema: Schema = new Schema({
     
     userId: mongoose.Types.ObjectId,
+    gameType: mongoose.Types.ObjectId,
     startTime: Date,
     endTime: Date,
     timeElapsed: Number,

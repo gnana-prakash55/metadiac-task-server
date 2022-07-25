@@ -4,6 +4,7 @@ import User from "../../models/user.model";
 import Wallet from "../../models/wallet.model";
 import Game from "../../models/game.model";
 import Manage from "../../models/manage.model";
+import GameType from "../../models/gametype.model";
 
 export const UserSignUp = async (req: Request, res: Response) => {
     try {
@@ -110,7 +111,7 @@ export const saveGame = async (req: Request, res: Response) => {
 
         if(req.user.role !== "user") return res.status(401).send("You are not allowed")
 
-        const { startTime, endTime, timeElapsed } = req.body
+        const { startTime, endTime, timeElapsed, gameType } = req.body
 
         const completed_minutes = Math.floor(timeElapsed / 60)
 
@@ -121,27 +122,30 @@ export const saveGame = async (req: Request, res: Response) => {
             userId: req.user._id,
             startTime,
             endTime,
-            timeElapsed
+            timeElapsed,
+            gameType
         })
 
         await newGame.save()
 
+        const gameTypes = await GameType.findOne({ _id: gameType }, { price: 1})
+
         if(completed_minutes <= (manage?.firstTimeInterval.interval as number)) {
-            const creditAmount = wallet?.balance as number + (((manage?.firstTimeInterval.percentage as number)/100) * (wallet?.balance as number)) 
+            const creditAmount = (wallet?.balance as number) + (((manage?.firstTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
                 }
             })
         } else if(completed_minutes > (manage?.firstTimeInterval.interval as number) && completed_minutes < (manage?.secondTimeInterval.interval as number)) {
-            const creditAmount = wallet?.balance as number + (((manage?.secondTimeInterval.percentage as number)/100) * (wallet?.balance as number)) 
+            const creditAmount = (wallet?.balance as number) + (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
                 }
             })
         } else if(completed_minutes > (manage?.thirdTimeInterval.interval as number)) {
-            const creditAmount = wallet?.balance as number + (((manage?.secondTimeInterval.percentage as number)/100) * (wallet?.balance as number)) 
+            const creditAmount = (wallet?.balance as number) + (((manage?.secondTimeInterval.percentage as number)/100) * (gameTypes?.price as number)) 
             await Wallet.updateOne({ userId: req.user._id }, {
                 $set: {
                     balance: creditAmount
@@ -203,10 +207,14 @@ export const WalletAvailable = async (req: Request, res: Response) => {
 
         if(req.user.role !== "user") return res.status(401).send("You are not allowed")
 
+        const { gameTypeId } = req.params
+
         const wallet = await Wallet.findOne({ userId: req.user._id }, { balance: 1})
         if(!wallet) res.status(300).send({ message: "Please create Wallet before start the Game"})
 
-        if((wallet?.balance as number) <= 0) res.status(300).send({ message: "Insufficient Balance"})
+        const gameType = await GameType.findOne({ _id: gameTypeId }, { price: 1 })
+
+        if((wallet?.balance as number) <= (gameType?.price as number)) res.status(300).send({ message: "Insufficient Balance"})
 
         return res.status(200).send({ message: "Wallet Available"})
 

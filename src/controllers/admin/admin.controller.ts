@@ -28,20 +28,20 @@ export const AddGameTypes = async (req: Request, res: Response) => {
 
         if(req?.user?.role !== "admin") return res.status(401).send({message: "You are not allowed"})
 
-        const { gametype } = req.body
+        const { gameTypeId, gametype, price } = req.body
 
-        if(gametype === "") return res.status(300).send({ message: "Game Type Should not be Empty"})
+        console.log(req.body)
 
-        const gameType = await GameType.findOne({ name: gametype })
-        if(gameType) return res.status(300).send({ message: "Game type already exists"})
+        if(gameTypeId ==="" || gametype === "" || price === "") return res.status(300).send({ message: "Please Fill All the Fields"})
 
-        const newGameType = new GameType({
-            name: gametype
+        await GameType.updateOne({ _id : gameTypeId }, {
+            $set: {
+                name: gametype,
+                price: price
+            }
         })
 
-        await newGameType.save()
-
-        return res.status(200).send("Game Type Created")
+        return res.status(200).send("Game Type Updated")
         
     } catch (error) {
         console.log(error)
@@ -52,7 +52,7 @@ export const AddGameTypes = async (req: Request, res: Response) => {
 export const ListGameTypes = async (req: Request, res: Response) => {
     try {
 
-        const gameTypes = await GameType.find({},{ name: 1 })
+        const gameTypes = await GameType.find({},{ name: 1, price: 1 })
 
         return res.status(200).send(gameTypes)
         
