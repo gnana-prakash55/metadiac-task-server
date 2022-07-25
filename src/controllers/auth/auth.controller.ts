@@ -10,6 +10,8 @@ export const login =  async (req:Request, res: Response) => {
         const { email, password } = req.body
 
         if(email === "" || password === "") return res.status(300).send({ message: "Fill All the Fields"})
+        
+        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) return res.status(303).send({ message: "Please Provide Valid Email"})
 
         const user  = await User.findOne({ email })
         if(!user) return res.status(404).send({ message: "User Not Found"})

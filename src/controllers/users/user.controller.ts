@@ -13,6 +13,8 @@ export const UserSignUp = async (req: Request, res: Response) => {
 
         if(name === "" || email === "" || password === "") return res.status(303).send({ message: "Please fill all the fields"})
 
+        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) return res.status(303).send({ message: "Please Provide Valid Email"})
+
         const duplicateCheck = await User.findOne({ email }, { _id: 1 })
         if(duplicateCheck) return res.status(303).send({ message: "User Already Exists"})
 
